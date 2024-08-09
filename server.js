@@ -1,25 +1,29 @@
 const express = require('express');
 const axios = require('axios');
-const path = require('path');
+const bodyParser = require('body-parser');
 
 const app = express();
-
-// Middleware to parse URL-encoded data from the form
-app.use(express.urlencoded({ extended: true }));
-
-// Serve the static HTML file
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'verify.html'));
-});
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // API details
 const BASE_URL = 'https://api.textbee.dev/api/v1';
 const API_KEY = '22233e1c-2993-4215-b610-2890bee18af0';
 const DEVICE_ID = '66b5ff663d552f1613992a2d';
 
-// Endpoint to verify transaction
-app.post('/verify-transaction', async (req, res) => {
-    const { referenceNumber, username } = req.body;
+// Serve the HTML form
+app.get('/', (req, res) => {
+    res.send(`
+        <form action="/check-message" method="post">
+            <label for="searchText">Enter text to search in received messages:</label><br>
+            <input type="text" id="searchText" name="searchText" required><br><br>
+            <button type="submit">Check Message</button>
+        </form>
+    `);
+});
+
+// Endpoint to check for a specific message
+app.post('/check-message', async (req, res) => {
+    const { searchText } = req.body;
 
     try {
         // Fetch all messages from Textbee
@@ -29,38 +33,30 @@ app.post('/verify-transaction', async (req, res) => {
             },
         });
 
-        console.log('API Response:', response.data); // Log the response data for debugging
+        console.log('Received Messages:', response.data); // Debugging: log all received messages
 
-        // Check if any message contains the reference number
-        const transactionMessage = response.data.find(message => message.includes(referenceNumber));
+        // Check if any message contains the search text
+        const foundMessage = response.data.messages.find(message => message.message.includes(searchText));
 
-        if (transactionMessage) {
-            // If the reference number matches, call the SMM Panel API to add funds
-            await axios.post(`https://socpanel.com/privateApi/incrementUserBalance`, {
-                user_id: username,
-                amount: 100, // Or whatever amount you are adding
-                token: 'eHX9Sb58cxKp2JZtaFP41HfeqH9PxrIxSacknzAThhsSFZirkN0SXHKVu2gC',
-            });
-
+        if (foundMessage) {
             res.send(`
-                <h1>Transaction Verified Successfully!</h1>
-                <p>Reference Number: ${referenceNumber}</p>
-                <p>Username: ${username}</p>
-                <a href="/">Go back</a>
+                <h1>Message Found!</h1>
+                <p>The text "${searchText}" was found in the received messages.</p>
+                <p>Message: ${foundMessage.message}</p>
+                <a href="/">Check Another Message</a>
             `);
         } else {
             res.send(`
-                <h1>Transaction Not Found</h1>
-                <p>The reference number does not match any incoming transaction.</p>
+                <h1>Message Not Found</h1>
+                <p>The text "${searchText}" was not found in any received messages.</p>
                 <a href="/">Try Again</a>
             `);
         }
     } catch (error) {
-        console.error('Verification Error:', error); // Log the error for debugging
-
+        console.error('Error checking messages:', error); // Log the error for debugging
         res.send(`
-            <h1>Failed to Verify Transaction</h1>
-            <p>${error.message}</p>
+            <h1>Error Occurred</h1>
+            <p>There was an error checking messages: ${error.message}</p>
             <a href="/">Try Again</a>
         `);
     }
