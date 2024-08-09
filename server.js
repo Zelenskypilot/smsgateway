@@ -29,6 +29,8 @@ app.post('/verify-transaction', async (req, res) => {
             },
         });
 
+        console.log('API Response:', response.data); // Log the response data for debugging
+
         // Check if any message contains the reference number
         const transactionMessage = response.data.find(message => message.includes(referenceNumber));
 
@@ -54,6 +56,8 @@ app.post('/verify-transaction', async (req, res) => {
             `);
         }
     } catch (error) {
+        console.error('Verification Error:', error); // Log the error for debugging
+
         res.send(`
             <h1>Failed to Verify Transaction</h1>
             <p>${error.message}</p>
