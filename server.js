@@ -1,71 +1,54 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const axios = require('axios');
+const path = require('path');
 
 const app = express();
-app.use(bodyParser.urlencoded({ extended: true }));
+
+// Middleware to parse URL-encoded data from the form
+app.use(express.urlencoded({ extended: true }));
+
+// Serve the static HTML file
 app.use(express.static('public'));
 
-let messages = [];
+// API details
+const BASE_URL = 'https://api.textbee.dev/api/v1';
+const API_KEY = '22233e1c-2993-4215-b610-2890bee18af0';
+const DEVICE_ID = '66b5ff663d552f1613992a2d';
 
-// Serve the main HTML form
-app.get('/', (req, res) => {
+// Endpoint to send SMS
+app.post('/send-sms', async (req, res) => {
+  const { phoneNumber, message } = req.body;
+
+  // Split the phone numbers by comma and trim any whitespace
+  const phoneNumbers = phoneNumber.split(',').map(num => num.trim());
+
+  try {
+    const response = await axios.post(`${BASE_URL}/gateway/devices/${DEVICE_ID}/sendSMS`, {
+      recipients: phoneNumbers,
+      message: message,
+    }, {
+      headers: {
+        'x-api-key': API_KEY,
+      },
+    });
+
     res.send(`
-        <h1>Send and Receive SMS Simulation</h1>
-        <div class="form-container">
-            <form action="/send-message" method="post">
-                <label for="messageText">Enter your message:</label><br>
-                <input type="text" id="messageText" name="messageText" required><br><br>
-                <button type="submit">Send Message</button>
-            </form>
-        </div>
-        
-        <div class="messages-container">
-            <h2>Received Messages:</h2>
-            <div id="messageDiv">
-                ${messages.map(msg => `<p>${msg}</p>`).join('')}
-            </div>
-        </div>
-        
-        <div class="form-container">
-            <form action="/check-message" method="post">
-                <label for="searchText">Enter text to search in received messages:</label><br>
-                <input type="text" id="searchText" name="searchText" required><br><br>
-                <button type="submit">Check Message</button>
-            </form>
-        </div>
+      <h1>SMS Sent Successfully!</h1>
+      <p>Phone Numbers: ${phoneNumbers.join(', ')}</p>
+      <p>Message: ${message}</p>
+      <a href="/">Send another SMS</a>
     `);
-});
-
-// Endpoint to send a message
-app.post('/send-message', (req, res) => {
-    const { messageText } = req.body;
-    messages.push(messageText);
-    res.redirect('/');
-});
-
-// Endpoint to check if the message exists
-app.post('/check-message', (req, res) => {
-    const { searchText } = req.body;
-    const foundMessage = messages.find(msg => msg.includes(searchText));
-
-    if (foundMessage) {
-        res.send(`
-            <h1>Message Found!</h1>
-            <p>The text "${searchText}" was found in the received messages.</p>
-            <p>Message: ${foundMessage}</p>
-            <a href="/">Check Another Message</a>
-        `);
-    } else {
-        res.send(`
-            <h1>Message Not Found</h1>
-            <p>The text "${searchText}" was not found in any received messages.</p>
-            <a href="/">Try Again</a>
-        `);
-    }
+  } catch (error) {
+    res.send(`
+      <h1>Failed to Send SMS</h1>
+      <p>${error.message}</p>
+      <a href="/">Try Again</a>
+    `);
+  }
 });
 
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
