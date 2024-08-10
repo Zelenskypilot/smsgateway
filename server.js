@@ -1,7 +1,6 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-require('dotenv').config(); // Load environment variables from .env file
 
 const app = express();
 
@@ -11,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve the static HTML file
 app.use(express.static('public'));
 
-// Use environment variables
+// Use environment variables directly from Render's environment settings
 const BASE_URL = process.env.BASE_URL;
 const API_KEY = process.env.API_KEY;
 const DEVICE_ID = process.env.DEVICE_ID;
