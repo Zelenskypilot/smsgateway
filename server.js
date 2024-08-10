@@ -8,7 +8,9 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 
 // Serve the static HTML file
-app.use(express.static('public'));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Use environment variables directly from Render's environment settings
 const BASE_URL = process.env.BASE_URL;
