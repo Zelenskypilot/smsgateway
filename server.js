@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
+require('dotenv').config(); // Load environment variables from .env file
 
 const app = express();
 
@@ -10,10 +11,10 @@ app.use(express.urlencoded({ extended: true }));
 // Serve the static HTML file
 app.use(express.static('public'));
 
-// API details
-const BASE_URL = 'https://api.textbee.dev/api/v1';
-const API_KEY = '22233e1c-2993-4215-b610-2890bee18af0';
-const DEVICE_ID = '66b5ff663d552f1613992a2d';
+// Use environment variables
+const BASE_URL = process.env.BASE_URL;
+const API_KEY = process.env.API_KEY;
+const DEVICE_ID = process.env.DEVICE_ID;
 
 // Endpoint to send SMS
 app.post('/send-sms', async (req, res) => {
