@@ -12,16 +12,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Use environment variables directly from Render's environment settings
-const BASE_URL = process.env.BASE_URL;
-const API_KEY = process.env.API_KEY;
-const DEVICE_ID = process.env.DEVICE_ID;
-
-// Ensure environment variables are set
-if (!BASE_URL || !API_KEY || !DEVICE_ID) {
-  console.error('Missing necessary environment variables.');
-  process.exit(1);
-}
+// API details - Hardcoded directly into the script
+const BASE_URL = 'https://api.textbee.dev/api/v1';
+const API_KEY = '22233e1c-2993-4215-b610-2890bee18af0';
+const DEVICE_ID = '66b5ff663d552f1613992a2d';
 
 // Endpoint to send SMS
 app.post('/send-sms', async (req, res) => {
