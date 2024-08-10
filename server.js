@@ -17,6 +17,12 @@ const BASE_URL = process.env.BASE_URL;
 const API_KEY = process.env.API_KEY;
 const DEVICE_ID = process.env.DEVICE_ID;
 
+// Ensure environment variables are set
+if (!BASE_URL || !API_KEY || !DEVICE_ID) {
+  console.error('Missing necessary environment variables.');
+  process.exit(1);
+}
+
 // Endpoint to send SMS
 app.post('/send-sms', async (req, res) => {
   const { phoneNumber, message } = req.body;
